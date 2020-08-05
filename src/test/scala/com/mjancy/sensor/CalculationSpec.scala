@@ -21,8 +21,10 @@ class CalculationSpec extends UnitTest {
       "s3" -> Calculation(NaN.asLeft, count = 0, errors = 1)
     )
 
+    val fold = new SensorFold
+
     //when
-    val result = sensors.foldLeft(Calculation.empty)(Calculation.combine)
+    val result = sensors.foldLeft(fold.empty)(fold.combine)
 
     //then
     result should contain theSameElementsAs expected

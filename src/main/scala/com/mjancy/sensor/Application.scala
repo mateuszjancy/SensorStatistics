@@ -31,7 +31,7 @@ trait Application {
 
   def pathSource(path: Array[Path]): Source[Path, NotUsed] = Source(path)
 
-  def fileStore(path: Path): Source[ByteString, Future[IOResult]] =
+  def fileSource(path: Path): Source[ByteString, Future[IOResult]] =
     FileIO
       .fromPath(path)
       .via(Framing.delimiter(ByteString("\n"), 100))
@@ -53,11 +53,11 @@ trait Application {
           data
       }
 
-  def calculationFlow: Flow[ByteString, Map[String, Calculation], NotUsed] =
+  def calculationFlow(implicit fold: Fold[Map[String, Calculation], Sensor]): Flow[ByteString, Map[String, Calculation], NotUsed] =
     Flow[ByteString]
       .map(_.utf8String)
       .map(Sensor.apply)
-      .fold(Calculation.empty)(Calculation.combine)
+      .fold(fold.empty)(fold.combine)
 
   def report(processedFiles: Array[Path]): Flow[Map[String, Calculation], String, NotUsed] = Flow[Map[String, Calculation]].map { report =>
     val processed    = processedFiles.length

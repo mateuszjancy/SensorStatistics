@@ -22,12 +22,13 @@ object Boot extends App with Application {
       |""".stripMargin)
 
   def run(params: Array[String])(implicit ec: ExecutionContext, system: ActorSystem): Future[String] = {
-    val MaxConcurrentFiles = 5
+    val MaxConcurrentFiles  = 5
+    implicit val sensorFold: SensorFold = new SensorFold
 
     val result: Either[String, Future[String]] = for {
       path   <- pathParam(params)
       dir    <- workDir(path)
-      result <- pathSource(dir).flatMapMerge(MaxConcurrentFiles, fileStore).via(progressBar(system.log)).via(calculationFlow).via(report(dir)).asRight
+      result <- pathSource(dir).flatMapMerge(MaxConcurrentFiles, fileSource).via(progressBar(system.log)).via(calculationFlow).via(report(dir)).asRight
     } yield result.runReduce(_ + _)
 
     result.fold(error => { system.log.error(error); system.terminate(); Future.successful(error) }, f => { f.onComplete(_ => system.terminate()); f })

@@ -3,10 +3,10 @@ package com.mjancy.sensor
 import cats.implicits._
 import com.mjancy.sensor.Sensor.Humidity
 
-object Calculation {
-  val empty = Map.empty[String, Calculation]
+class SensorFold extends Fold[Map[String, Calculation], Sensor] {
+  override val empty = Map.empty[String, Calculation]
 
-  def combine(acc: Map[String, Calculation], sensor: Sensor): Map[String, Calculation] = acc.updatedWith(sensor.sensorId) {
+  override def combine(acc: Map[String, Calculation], sensor: Sensor): Map[String, Calculation] = acc.updatedWith(sensor.sensorId) {
     case Some(sensorStatistics) =>
       val result = statistics(sensorStatistics, sensor.humidity)
       Some(result)
